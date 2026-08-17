@@ -11,30 +11,28 @@ interface Props {
   expected?: { x: number; y: number } | null;
 }
 
-// Recharts gets sluggish past a couple thousand markers; keep all (rare) fraud
-// points and stride-sample the normal cloud down to a budget.
 const MAX_BG = 1500;
+const PURPLE = '#5555F9';
+const NAVY = '#120046';
+const NORMAL = '#413CC3';
+const FRAUD = '#D92D20';
 
-// Glowing accent marker for the live transaction (Recharts won't size a point
-// from a Cell prop, so we draw it ourselves).
 function LiveDot(props: { cx?: number; cy?: number }) {
   const { cx, cy } = props;
   if (cx == null || cy == null) return null;
   return (
     <g>
-      <circle cx={cx} cy={cy} r={11} fill="#6366f1" fillOpacity={0.15} />
-      <circle cx={cx} cy={cy} r={5} fill="#6366f1" stroke="#0a0a0f" strokeWidth={1.5} />
+      <circle cx={cx} cy={cy} r={11} fill={PURPLE} fillOpacity={0.18} />
+      <circle cx={cx} cy={cy} r={5} fill={PURPLE} stroke="#FFFFFF" strokeWidth={2} />
     </g>
   );
 }
 
-// Hollow dashed ring: where the batch pipeline put this example at export
-// time. Live dot far from its ring = live-vs-batch embedding drift.
 function ExpectedRing(props: { cx?: number; cy?: number }) {
   const { cx, cy } = props;
   if (cx == null || cy == null) return null;
   return (
-    <circle cx={cx} cy={cy} r={8} fill="none" stroke="#e5e7eb" strokeWidth={1.5} strokeDasharray="3 2.5" opacity={0.8} />
+    <circle cx={cx} cy={cy} r={8} fill="none" stroke={NAVY} strokeWidth={1.5} strokeDasharray="3 2.5" opacity={0.7} />
   );
 }
 
@@ -48,9 +46,6 @@ export default function EmbeddingMap({ umap, result, expected }: Props) {
     return { normal: sampled, fraud: fraudPts, dropped: normalPts.length - sampled.length };
   }, [umap]);
 
-  // Axes pinned to the BACKGROUND extents (+padding): one outlying live point
-  // must not rescale the whole map — it clamps to the frame edge instead and
-  // gets called out below.
   const domain = useMemo(() => {
     if (!umap.length) return null;
     let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
@@ -84,18 +79,18 @@ export default function EmbeddingMap({ umap, result, expected }: Props) {
   const hasData = umap.length > 0 || live.length > 0;
 
   return (
-    <div className="bg-surface-2 rounded-lg border border-surface-3 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-medium text-gray-300">Embedding map</h2>
-        <span className="text-[10px] uppercase tracking-wider text-gray-500">UMAP · test set</span>
+    <div className="panel p-4">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-surface-3">
+        <h2 className="panel-title">Embedding map</h2>
+        <span className="panel-kicker">UMAP · test set</span>
       </div>
 
-      <div className="h-[300px] rounded-lg border border-surface-3 bg-surface-0/40">
+      <div className="h-[300px] rounded-lg border border-surface-3 bg-surface-0">
         {!hasData ? (
-          <div className="h-full flex flex-col items-center justify-center text-gray-500">
-            <MapIcon className="w-10 h-10 mb-3 opacity-30" />
-            <p className="text-gray-400 text-sm">No embedding background yet</p>
-            <p className="text-[11px] text-gray-600 mt-2">
+          <div className="h-full flex flex-col items-center justify-center text-ink-muted">
+            <MapIcon className="w-10 h-10 mb-3 text-ink-faint opacity-50" />
+            <p className="text-ink-secondary text-sm">No embedding background yet</p>
+            <p className="text-xs text-ink-faint mt-2 text-center px-4">
               Available after export_for_demo.py runs on the GPU box.
             </p>
           </div>
@@ -105,8 +100,8 @@ export default function EmbeddingMap({ umap, result, expected }: Props) {
               <XAxis type="number" dataKey="x" hide domain={domain?.x ?? ['dataMin', 'dataMax']} allowDataOverflow />
               <YAxis type="number" dataKey="y" hide domain={domain?.y ?? ['dataMin', 'dataMax']} allowDataOverflow />
               <ZAxis range={[16, 16]} />
-              <Scatter data={normal} fill="#3a6ea5" fillOpacity={0.45} isAnimationActive={false} />
-              <Scatter data={fraud} fill="#ef4444" fillOpacity={0.75} isAnimationActive={false} />
+              <Scatter data={normal} fill={NORMAL} fillOpacity={0.4} isAnimationActive={false} />
+              <Scatter data={fraud} fill={FRAUD} fillOpacity={0.75} isAnimationActive={false} />
               {expectedPts.length > 0 && (
                 <Scatter data={expectedPts} isAnimationActive={false} shape={<ExpectedRing />} />
               )}
@@ -118,17 +113,17 @@ export default function EmbeddingMap({ umap, result, expected }: Props) {
         )}
       </div>
 
-      <div className="flex items-center gap-4 mt-3 text-[11px] font-mono text-gray-500">
+      <div className="flex flex-wrap items-center gap-4 mt-3 text-[11px] font-mono text-ink-muted">
         <span className="flex items-center gap-1.5">
-          <i className="w-2 h-2 rounded-full inline-block" style={{ background: '#3a6ea5' }} /> Normal
+          <i className="w-2 h-2 rounded-full inline-block" style={{ background: NORMAL }} /> Normal
         </span>
         <span className="flex items-center gap-1.5">
-          <i className="w-2 h-2 rounded-full inline-block" style={{ background: '#ef4444' }} /> Fraud
+          <i className="w-2 h-2 rounded-full inline-block" style={{ background: FRAUD }} /> Fraud
         </span>
         <span className="flex items-center gap-1.5">
           <i
             className="w-2 h-2 rounded-full inline-block"
-            style={{ background: '#6366f1', boxShadow: '0 0 8px #6366f1' }}
+            style={{ background: PURPLE, boxShadow: `0 0 6px ${PURPLE}` }}
           />{' '}
           This transaction
         </span>
@@ -136,14 +131,14 @@ export default function EmbeddingMap({ umap, result, expected }: Props) {
           <span className="flex items-center gap-1.5">
             <i
               className="w-2.5 h-2.5 rounded-full inline-block border border-dashed"
-              style={{ borderColor: '#e5e7eb' }}
+              style={{ borderColor: NAVY }}
             />{' '}
             Expected (batch)
           </span>
         )}
       </div>
 
-      <p className="text-[10px] text-gray-600 mt-3 leading-relaxed">
+      <p className="text-[11px] text-ink-faint mt-3 leading-relaxed">
         512-d embeddings projected to 2-D. The decoder learns the geometry from raw sequences — fraud
         clusters emerge with no labels.
         {liveClamped && ' Live point landed beyond the background extent — pinned to the frame edge.'}

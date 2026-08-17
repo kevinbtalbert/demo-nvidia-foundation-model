@@ -22,10 +22,10 @@ interface Props {
 const POLL_MS = 1500;
 
 const STATE_META: Record<ExportState, { label: string; cls: string }> = {
-  idle: { label: 'Idle', cls: 'bg-surface-4 text-gray-400' },
-  running: { label: 'Running', cls: 'bg-accent/20 text-accent' },
-  done: { label: 'Complete', cls: 'bg-status-green/20 text-status-green' },
-  error: { label: 'Failed', cls: 'bg-status-red/20 text-status-red' },
+  idle: { label: 'Idle', cls: 'bg-surface-0 text-ink-muted border border-surface-4' },
+  running: { label: 'Running', cls: 'bg-status-purple-dim text-cloudera-purple-dim' },
+  done: { label: 'Complete', cls: 'bg-status-green-dim text-cloudera-green' },
+  error: { label: 'Failed', cls: 'bg-status-red-dim text-status-red' },
 };
 
 const NEXUS_HINT: Record<NexusMode, string> = {
@@ -140,7 +140,7 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-cloudera-navy/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -148,17 +148,17 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-3">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-3 bg-surface-0">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold text-white">Build artifacts</h2>
-            <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${meta.cls}`}>{meta.label}</span>
+            <h2 className="text-base font-semibold text-ink">Build artifacts</h2>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.cls}`}>{meta.label}</span>
             {status?.elapsed_sec != null && (
-              <span className="font-mono text-[11px] text-gray-500">{status.elapsed_sec}s</span>
+              <span className="font-mono text-[11px] text-ink-muted">{status.elapsed_sec}s</span>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-500 hover:text-gray-300 rounded-lg hover:bg-surface-3"
+            className="p-1.5 text-ink-muted hover:text-ink rounded-lg hover:bg-surface-3 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -166,10 +166,10 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
 
         {/* body */}
         <div className="p-5 space-y-4 overflow-y-auto">
-          <p className="text-xs text-gray-400 leading-relaxed">
+          <p className="text-xs text-ink-secondary leading-relaxed">
             Trains the XGBoost heads (plus the NEXUS Large Tabular Model head when
             configured), fits PCA + UMAP on the foundation-model
-            embeddings, and writes <span className="font-mono text-gray-300">demo_artifacts/</span> on
+            embeddings, and writes <span className="font-mono text-ink">demo_artifacts/</span> on
             the backend. Reads the training splits from the configured Impala database
             (see the Data dialog) and generates the foundation-model embeddings in-app —
             requires the model checkpoint, the Impala split tables, and a GPU. When it
@@ -179,11 +179,11 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
           {/* NEXUS head mode — settable here because demo boxes rarely offer
               shell access; persists server-side, applies without a restart. */}
           {nexus && (
-            <div className="bg-surface-2 border border-surface-3 rounded-lg p-3">
+            <div className="panel p-3 bg-surface-0">
               <div className="flex items-center justify-between gap-3">
-                <div className="text-xs font-medium text-gray-300">
+                <div className="text-xs font-semibold text-ink">
                   NEXUS head{' '}
-                  <span className="text-gray-500 font-normal">· Large Tabular Model</span>
+                  <span className="text-ink-muted font-normal">· Large Tabular Model</span>
                 </div>
                 <div className="flex rounded-md overflow-hidden border border-surface-4">
                   {(['off', 'stub', 'live'] as NexusMode[]).map((m) => {
@@ -199,12 +199,12 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
                             ? 'Live needs NEXUS_ENDPOINT_NAME + NEXUS_S3_BUCKET set on the backend'
                             : undefined
                         }
-                        className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                        className={`px-2.5 py-1 text-[11px] font-semibold transition-colors ${
                           active
-                            ? 'bg-status-purple/20 text-status-purple'
+                            ? 'bg-status-purple-dim text-cloudera-purple-dim'
                             : liveLocked
-                              ? 'text-gray-600 cursor-not-allowed'
-                              : 'text-gray-400 hover:text-gray-200 hover:bg-surface-3'
+                              ? 'text-ink-faint cursor-not-allowed'
+                              : 'text-ink-muted hover:text-ink hover:bg-surface-0'
                         }`}
                       >
                         {m}
@@ -213,7 +213,7 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
                   })}
                 </div>
               </div>
-              <p className="text-[11px] text-gray-500 mt-1.5">
+              <p className="text-[11px] text-ink-muted mt-1.5">
                 {NEXUS_HINT[nexus.mode]}{' '}
                 {nexus.mode !== 'off' &&
                   'The score bar reacts on the next inference; the metrics card needs a re-run of this export.'}
@@ -222,7 +222,7 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
           )}
 
           {reqError && (
-            <div className="px-4 py-3 bg-status-red-dim/30 border border-status-red/40 rounded-lg text-sm text-status-red">
+            <div className="px-4 py-3 bg-status-red-dim border border-status-red/30 rounded-lg text-sm text-status-red">
               {reqError}
             </div>
           )}
@@ -234,7 +234,7 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
           {status && status.log.length > 0 && (
             <div
               ref={logRef}
-              className="bg-surface-0 border border-surface-3 rounded-lg p-3 max-h-56 overflow-y-auto font-mono text-[11px] leading-relaxed text-gray-400 space-y-0.5"
+              className="bg-surface-0 border border-surface-3 rounded-lg p-3 max-h-56 overflow-y-auto font-mono text-[11px] leading-relaxed text-ink-muted space-y-0.5"
             >
               {status.log.map((line, i) => (
                 <div
@@ -243,7 +243,7 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
                     line.startsWith('ERROR')
                       ? 'text-status-red'
                       : line.startsWith('Done') || line.startsWith('Lift')
-                        ? 'text-status-green'
+                        ? 'text-cloudera-green'
                         : ''
                   }
                 >
@@ -251,7 +251,7 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
                 </div>
               ))}
               {running && (
-                <div className="flex items-center gap-2 text-accent pt-1">
+                <div className="flex items-center gap-2 text-cloudera-purple pt-1">
                   <Loader2 className="w-3 h-3 animate-spin" /> working…
                 </div>
               )}
@@ -260,8 +260,8 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
 
           {/* result summary */}
           {state === 'done' && lift && (
-            <div className="bg-surface-2 border border-status-green/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3 text-status-green text-sm">
+            <div className="bg-status-green-dim border border-cloudera-green/30 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3 text-cloudera-green text-sm font-medium">
                 <CheckCircle className="w-4 h-4" />
                 Artifacts built · engine mode{' '}
                 <span className="font-mono">{status?.engine_mode}</span>
@@ -282,7 +282,7 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
           )}
 
           {state === 'error' && status?.error && (
-            <div className="flex items-start gap-2 px-4 py-3 bg-status-red-dim/30 border border-status-red/40 rounded-lg text-sm text-status-red">
+            <div className="flex items-start gap-2 px-4 py-3 bg-status-red-dim border border-status-red/30 rounded-lg text-sm text-status-red">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>{status.error}</span>
             </div>
@@ -293,14 +293,14 @@ export default function ExportDialog({ open, onClose, onExported }: Props) {
         <div className="px-5 py-4 border-t border-surface-3 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="bg-surface-3 text-gray-300 hover:bg-surface-4 px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
+            className="btn-secondary"
           >
             Close
           </button>
           <button
             onClick={run}
             disabled={busy || running}
-            className="flex items-center gap-2 bg-accent text-white hover:bg-accent/90 px-3 py-1.5 text-xs font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {busy || running ? (
               <>
@@ -339,11 +339,11 @@ export function ResourceMonitor({ res, live }: { res: ResourceSample; live: bool
   if (meters.length === 0) return null;
 
   return (
-    <div className="bg-surface-2 border border-surface-3 rounded-lg p-3">
-      <div className="flex items-center gap-2 mb-2.5 text-[10px] uppercase tracking-wide text-gray-500">
-        <Activity className={`w-3 h-3 ${live ? 'text-accent' : ''}`} />
+    <div className="panel p-3 bg-surface-0">
+      <div className="flex items-center gap-2 mb-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
+        <Activity className={`w-3 h-3 ${live ? 'text-cloudera-purple' : ''}`} />
         Backend resources
-        {res.gpu_name && <span className="font-mono normal-case text-gray-400">· {res.gpu_name}</span>}
+        {res.gpu_name && <span className="font-mono normal-case text-ink-secondary font-normal">· {res.gpu_name}</span>}
       </div>
       <div className="grid grid-cols-2 gap-x-5 gap-y-2.5">
         {meters.map((m) => (
@@ -363,16 +363,16 @@ function Meter({ label, pct, detail }: { label: string; pct: number | null; deta
         ? 'bg-status-red'
         : clamped > 75
           ? 'bg-status-amber'
-          : 'bg-accent';
+          : 'bg-cloudera-purple';
   return (
     <div>
       <div className="flex items-center justify-between mb-1 text-[10px]">
-        <span className="text-gray-500 uppercase tracking-wide">{label}</span>
-        <span className="font-mono text-gray-400">
+        <span className="text-ink-muted font-semibold uppercase tracking-[0.08em]">{label}</span>
+        <span className="font-mono text-ink-secondary">
           {detail ?? (pct != null ? `${pct.toFixed(0)}%` : '—')}
         </span>
       </div>
-      <div className="h-1.5 bg-surface-3 rounded-full overflow-hidden">
+      <div className="h-1.5 bg-surface-0 rounded-full overflow-hidden border border-surface-3">
         <div
           className={`h-full rounded-full transition-all duration-700 ${tone}`}
           style={{ width: `${clamped}%` }}
@@ -385,9 +385,9 @@ function Meter({ label, pct, detail }: { label: string; pct: number | null; deta
 function Stat({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-gray-500">{label}</span>
+      <span className="text-ink-muted">{label}</span>
       <span
-        className={`font-mono ${value == null ? 'text-gray-500' : value < 0 ? 'text-status-red' : 'text-status-green'}`}
+        className={`font-mono ${value == null ? 'text-ink-faint' : value < 0 ? 'text-status-red' : 'text-cloudera-green'}`}
       >
         {value == null ? '—' : `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`}
       </span>

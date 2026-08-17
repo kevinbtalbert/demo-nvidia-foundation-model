@@ -93,41 +93,63 @@ export default function App() {
       />
 
       <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1400px] w-full mx-auto">
-        <MetricsStrip summary={summary} />
+        <section>
+          <div className="mb-4">
+            <div className="section-accent mb-2" />
+            <h2 className="text-lg font-semibold text-ink">Model performance</h2>
+            <p className="text-sm text-ink-muted mt-0.5">
+              Test-set metrics from the latest artifact export — compare paradigms below.
+            </p>
+          </div>
+          <MetricsStrip summary={summary} />
+        </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr_400px] gap-6 items-start">
-          <TransactionComposer
-            form={form}
-            setForm={(f) => {
-              setForm(f);
-              setLoadedExample(null); // manual edit — no longer "the" example
-            }}
-            examples={examples}
-            onLoadExample={(ex) => {
-              setForm(exampleToForm(ex.txn));
-              setLoadedExample(ex);
-            }}
-            onRun={runInference}
-            scoring={scoring}
-          />
-          <ModelHeads result={result} summary={summary} scoring={scoring} error={scoreError} />
-          <Suspense
-            fallback={
-              <div className="bg-surface-2 rounded-lg border border-surface-3 p-4 h-[420px] animate-pulse" />
-            }
-          >
-            <EmbeddingMap umap={umap} result={result} expected={loadedExample?.expected_position ?? null} />
-          </Suspense>
-        </div>
+        <section>
+          <div className="mb-4">
+            <div className="section-accent mb-2" />
+            <h2 className="text-lg font-semibold text-ink">Live inference</h2>
+            <p className="text-sm text-ink-muted mt-0.5">
+              Compose or load a transaction, score it across model heads, and locate it on the embedding map.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr_400px] gap-6 items-start">
+            <TransactionComposer
+              form={form}
+              setForm={(f) => {
+                setForm(f);
+                setLoadedExample(null); // manual edit — no longer "the" example
+              }}
+              examples={examples}
+              onLoadExample={(ex) => {
+                setForm(exampleToForm(ex.txn));
+                setLoadedExample(ex);
+              }}
+              onRun={runInference}
+              scoring={scoring}
+            />
+            <ModelHeads result={result} summary={summary} scoring={scoring} error={scoreError} />
+            <Suspense
+              fallback={
+                <div className="panel p-4 h-[420px] animate-pulse bg-surface-0" />
+              }
+            >
+              <EmbeddingMap umap={umap} result={result} expected={loadedExample?.expected_position ?? null} />
+            </Suspense>
+          </div>
+        </section>
       </main>
 
-      {/* partner strip — bottom right */}
-      <footer className="px-4 sm:px-6 lg:px-8 pb-4 max-w-[1400px] w-full mx-auto">
-        <div className="flex items-center justify-end gap-7">
-          <span className="text-[9px] uppercase tracking-[0.2em] text-gray-600">powered by</span>
-          <img src={clouderaLogo} alt="Cloudera" className="h-4 opacity-60 hover:opacity-100 transition-opacity" />
-          <img src={vastLogo} alt="VAST Data" className="h-[15px] opacity-60 hover:opacity-100 transition-opacity" />
-          <img src={fundamentalLogo} alt="Fundamental (NEXUS)" className="h-[18px] opacity-60 hover:opacity-100 transition-opacity" />
+      <footer className="mt-auto bg-cloudera-navy border-t border-white/10">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 max-w-[1400px] w-full mx-auto flex flex-wrap items-center justify-between gap-4">
+          <p className="text-xs text-white/50">
+            NVIDIA Transaction Foundation Model · deployed via Cloudera AI Applied ML Prototype
+          </p>
+          <div className="flex items-center gap-6">
+            <span className="text-[10px] uppercase tracking-[0.14em] text-white/40">Powered by</span>
+            <img src={clouderaLogo} alt="Cloudera" className="h-4 opacity-80" />
+            <img src={vastLogo} alt="VAST Data" className="h-[15px] opacity-80" />
+            <img src={fundamentalLogo} alt="Fundamental (NEXUS)" className="h-[18px] opacity-80" />
+          </div>
         </div>
       </footer>
 

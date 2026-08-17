@@ -11,9 +11,6 @@ const fmt = (v: number | null | undefined) => (v == null ? '—' : v.toFixed(4))
 const liftStr = (v: number | null | undefined) =>
   v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
 
-/** Side-by-side "everything XGBoost vs everything foundational" table, with the
- *  hybrid heads shown as the bridge between the two worlds. Qualitative rows
- *  are static; metric rows read the live export summary. */
 export default function ParadigmCompare({ open, onClose, summary }: Props) {
   if (!open) return null;
 
@@ -85,18 +82,21 @@ export default function ParadigmCompare({ open, onClose, summary }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-cloudera-navy/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
         className="bg-surface-1 rounded-xl border border-surface-3 shadow-2xl w-[780px] max-w-[95vw] max-h-[80vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-3">
-          <h2 className="text-base font-semibold text-white">Classic ML vs. foundation models</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-3 bg-surface-0">
+          <div>
+            <div className="section-accent mb-2" />
+            <h2 className="text-base font-semibold text-ink">Classic ML vs. foundation models</h2>
+          </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-500 hover:text-gray-300 rounded-lg hover:bg-surface-3"
+            className="p-1.5 text-ink-muted hover:text-ink rounded-lg hover:bg-surface-3 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -108,17 +108,17 @@ export default function ParadigmCompare({ open, onClose, summary }: Props) {
               <thead>
                 <tr>
                   <th className="w-36" />
-                  <th className="text-left align-top px-3 pb-3 border-b-2 border-gray-500/60">
-                    <div className="text-gray-200 font-medium">Everything XGBoost</div>
-                    <div className="text-[10px] font-normal text-gray-500 mt-0.5">raw head · today's world</div>
+                  <th className="text-left align-top px-3 pb-3 border-b-2 border-ink-faint/60">
+                    <div className="text-ink font-semibold">Everything XGBoost</div>
+                    <div className="text-[10px] font-normal text-ink-muted mt-0.5">Raw head · today's world</div>
                   </th>
-                  <th className="text-left align-top px-3 pb-3 border-b-2 border-accent/60">
-                    <div className="text-accent font-medium">The bridge — hybrid</div>
-                    <div className="text-[10px] font-normal text-gray-500 mt-0.5">embeddings · combined heads</div>
+                  <th className="text-left align-top px-3 pb-3 border-b-2 border-cloudera-purple/50">
+                    <div className="text-cloudera-purple-dim font-semibold">The bridge — hybrid</div>
+                    <div className="text-[10px] font-normal text-ink-muted mt-0.5">Embeddings · combined heads</div>
                   </th>
-                  <th className="text-left align-top px-3 pb-3 border-b-2 border-status-purple/60">
-                    <div className="text-status-purple font-medium">Everything foundational</div>
-                    <div className="text-[10px] font-normal text-gray-500 mt-0.5">
+                  <th className="text-left align-top px-3 pb-3 border-b-2 border-cloudera-navy/40">
+                    <div className="text-cloudera-navy font-semibold">Everything foundational</div>
+                    <div className="text-[10px] font-normal text-ink-muted mt-0.5">
                       NEXUS large tabular model
                       {nexus?.stub ? ' · stub' : ''}
                     </div>
@@ -128,10 +128,10 @@ export default function ParadigmCompare({ open, onClose, summary }: Props) {
               <tbody>
                 {rows.map(({ label, classic, hybrid, foundation }) => (
                   <tr key={label} className="border-b border-surface-3 last:border-0">
-                    <td className="py-2.5 pr-2 text-gray-500 align-top">{label}</td>
-                    <td className="py-2.5 px-3 text-gray-300 align-top">{classic}</td>
-                    <td className="py-2.5 px-3 text-gray-300 align-top">{hybrid}</td>
-                    <td className={`py-2.5 px-3 align-top ${nexus ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <td className="py-2.5 pr-2 text-ink-muted font-medium align-top">{label}</td>
+                    <td className="py-2.5 px-3 text-ink-secondary align-top">{classic}</td>
+                    <td className="py-2.5 px-3 text-ink-secondary align-top">{hybrid}</td>
+                    <td className={`py-2.5 px-3 align-top ${nexus ? 'text-ink-secondary' : 'text-ink-faint'}`}>
                       {foundation}
                     </td>
                   </tr>
@@ -140,7 +140,7 @@ export default function ParadigmCompare({ open, onClose, summary }: Props) {
             </table>
           </div>
 
-          <p className="mt-4 text-[11px] text-gray-500 leading-relaxed">
+          <p className="mt-4 text-xs text-ink-muted leading-relaxed">
             The adoption path runs left to right: keep the classifier your model-risk team
             already governs, hand it foundation-model representations for the lift, and use
             the fully-foundational column to evaluate what comes next

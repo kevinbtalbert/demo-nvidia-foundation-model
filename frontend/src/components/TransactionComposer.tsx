@@ -60,11 +60,6 @@ export function exampleToForm(t: Record<string, string | number>): FormState {
 
 const CHANNELS = ['Online Transaction', 'Swipe Transaction', 'Chip Transaction'];
 
-const labelCls = 'block text-[10px] text-gray-500 uppercase tracking-wider mb-1';
-const inputCls =
-  'w-full px-2.5 py-1.5 text-xs bg-surface-3 border border-surface-4 rounded-md text-gray-200 ' +
-  'placeholder-gray-600 font-mono focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20';
-
 interface Props {
   form: FormState;
   setForm: (f: FormState) => void;
@@ -81,10 +76,10 @@ export default function TransactionComposer({ form, setForm, examples, onLoadExa
     setForm({ ...form, [k]: e.target.value });
 
   return (
-    <div className="bg-surface-2 rounded-lg border border-surface-3 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-medium text-gray-300">Transaction input</h2>
-        <span className="text-[10px] uppercase tracking-wider text-gray-500">compose</span>
+    <div className="panel p-4">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-surface-3">
+        <h2 className="panel-title">Transaction input</h2>
+        <span className="panel-kicker">Compose</span>
       </div>
 
       {examples.length > 0 && (
@@ -93,13 +88,13 @@ export default function TransactionComposer({ form, setForm, examples, onLoadExa
             <button
               key={i}
               onClick={() => onLoadExample(ex)}
-              className="text-left bg-surface-3 border border-surface-4 rounded-lg px-3 py-2 transition-colors hover:border-accent/50 hover:bg-surface-3"
+              className="text-left bg-surface-0 border border-surface-4 rounded-lg px-3 py-2.5 transition-colors hover:border-cloudera-purple/40 hover:bg-white"
             >
-              <div className="text-xs text-gray-200">{ex.label}</div>
-              <div className="text-[10px] font-mono text-gray-500 mt-0.5">
+              <div className="text-sm font-medium text-ink">{ex.label}</div>
+              <div className="text-[11px] font-mono text-ink-muted mt-0.5">
                 {String(ex.txn['Amount'] ?? '')} ·{' '}
                 {String(ex.txn['Use Chip'] ?? '').split(' ')[0].toUpperCase()}
-                {ex.is_fraud != null && ` · ground truth: ${ex.is_fraud ? 'FRAUD' : 'LEGIT'}`}
+                {ex.is_fraud != null && ` · Ground truth: ${ex.is_fraud ? 'Fraud' : 'Legit'}`}
               </div>
             </button>
           ))}
@@ -108,26 +103,26 @@ export default function TransactionComposer({ form, setForm, examples, onLoadExa
 
       <div className="space-y-3">
         <div>
-          <label className={labelCls}>Amount</label>
-          <input className={inputCls} value={form.amount} onChange={set('amount')} />
+          <label className="field-label">Amount</label>
+          <input className="field-input" value={form.amount} onChange={set('amount')} />
         </div>
         <div>
-          <label className={labelCls}>Merchant</label>
-          <input className={inputCls} value={form.merchant} onChange={set('merchant')} />
+          <label className="field-label">Merchant</label>
+          <input className="field-input" value={form.merchant} onChange={set('merchant')} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelCls}>City</label>
-            <input className={inputCls} value={form.city} onChange={set('city')} />
+            <label className="field-label">City</label>
+            <input className="field-input" value={form.city} onChange={set('city')} />
           </div>
           <div>
-            <label className={labelCls}>State</label>
-            <input className={inputCls} value={form.state} onChange={set('state')} />
+            <label className="field-label">State</label>
+            <input className="field-input" value={form.state} onChange={set('state')} />
           </div>
         </div>
         <div>
-          <label className={labelCls}>Channel</label>
-          <select className={inputCls} value={form.channel} onChange={set('channel')}>
+          <label className="field-label">Channel</label>
+          <select className="field-input" value={form.channel} onChange={set('channel')}>
             {CHANNELS.map((c) => (
               <option key={c}>{c}</option>
             ))}
@@ -135,22 +130,22 @@ export default function TransactionComposer({ form, setForm, examples, onLoadExa
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelCls}>MCC</label>
-            <input className={inputCls} value={form.mcc} onChange={set('mcc')} />
+            <label className="field-label">MCC</label>
+            <input className="field-input" value={form.mcc} onChange={set('mcc')} />
           </div>
           <div>
-            <label className={labelCls}>ZIP</label>
-            <input className={inputCls} value={form.zip} onChange={set('zip')} />
+            <label className="field-label">ZIP</label>
+            <input className="field-input" value={form.zip} onChange={set('zip')} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelCls}>Time (HH:MM)</label>
-            <input className={inputCls} value={form.time} onChange={set('time')} />
+            <label className="field-label">Time (HH:MM)</label>
+            <input className="field-input" value={form.time} onChange={set('time')} />
           </div>
           <div>
-            <label className={labelCls}>Card</label>
-            <input className={inputCls} value={form.card} onChange={set('card')} />
+            <label className="field-label">Card</label>
+            <input className="field-input" value={form.card} onChange={set('card')} />
           </div>
         </div>
       </div>
@@ -158,7 +153,7 @@ export default function TransactionComposer({ form, setForm, examples, onLoadExa
       <button
         onClick={onRun}
         disabled={scoring}
-        className="w-full mt-4 flex items-center justify-center gap-2 bg-accent text-white hover:bg-accent/90 px-3 py-2.5 text-sm font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-wait"
+        className="btn-primary w-full mt-5 py-2.5"
       >
         {scoring ? (
           <>

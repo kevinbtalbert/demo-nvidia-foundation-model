@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,22 +12,21 @@
 
 html,
 body {
-  background-color: #0a0a0f;
+  background-color: #f5f8fa;
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #e5e7eb;
+  color: #120046;
 }
 
 code,
 pre,
 kbd,
 samp {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
 }
 
 ::-webkit-scrollbar {
@@ -35,18 +34,66 @@ samp {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #12121a;
+  background: #e8eef2;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2e2e3a;
+  background: #cedbe4;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4a4a5a;
+  background: #98a2b3;
 }
 * {
   scrollbar-width: thin;
-  scrollbar-color: #2e2e3a #12121a;
+  scrollbar-color: #cedbe4 #e8eef2;
+}
+
+@layer components {
+  .panel {
+    @apply bg-surface-1 rounded-lg border border-surface-3 shadow-panel;
+  }
+
+  .panel-title {
+    @apply text-sm font-semibold text-ink;
+  }
+
+  .panel-kicker {
+    @apply text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted;
+  }
+
+  .section-accent {
+    @apply w-11 h-[3px] bg-cloudera-orange rounded-full;
+  }
+
+  .field-label {
+    @apply block text-[11px] font-medium text-ink-muted mb-1;
+  }
+
+  .field-input {
+    @apply w-full px-3 py-2 text-sm bg-surface-0 border border-surface-4 rounded-md text-ink
+      placeholder-ink-faint font-mono focus:outline-none focus:border-cloudera-purple
+      focus:ring-2 focus:ring-cloudera-purple/15 transition-shadow;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-1.5 bg-surface-1 text-ink-secondary border border-surface-4
+      hover:border-cloudera-purple/40 hover:text-ink px-3 py-1.5 text-xs font-semibold rounded-md
+      transition-colors;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-cloudera-orange text-white
+      hover:bg-[#e64d0c] px-3 py-2 text-sm font-semibold rounded-md transition-colors
+      disabled:opacity-50 disabled:cursor-not-allowed shadow-sm;
+  }
+
+  .btn-primary-sm {
+    @apply btn-primary px-3 py-1.5 text-xs;
+  }
+
+  .status-pill {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium;
+  }
 }
 
 @keyframes fadeSlideIn {
@@ -66,10 +113,10 @@ samp {
 @keyframes pulseGlow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 0 0 rgba(217, 45, 32, 0.25);
   }
   50% {
-    box-shadow: 0 0 12px 4px rgba(239, 68, 68, 0.15);
+    box-shadow: 0 0 0 4px rgba(217, 45, 32, 0.08);
   }
 }
 .animate-pulse-glow {

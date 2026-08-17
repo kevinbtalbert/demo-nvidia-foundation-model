@@ -29,10 +29,10 @@ interface Props {
 const POLL_MS = 1500;
 
 const STATE_META: Record<ExportState, { label: string; cls: string }> = {
-  idle: { label: 'Idle', cls: 'bg-surface-4 text-gray-400' },
-  running: { label: 'Loading data', cls: 'bg-accent/20 text-accent' },
-  done: { label: 'Loaded', cls: 'bg-status-green/20 text-status-green' },
-  error: { label: 'Failed', cls: 'bg-status-red/20 text-status-red' },
+  idle: { label: 'Idle', cls: 'bg-surface-0 text-ink-muted border border-surface-4' },
+  running: { label: 'Loading data', cls: 'bg-status-purple-dim text-cloudera-purple-dim' },
+  done: { label: 'Loaded', cls: 'bg-status-green-dim text-cloudera-green' },
+  error: { label: 'Failed', cls: 'bg-status-red-dim text-status-red' },
 };
 
 const BACKEND_META: Record<DataBackend, { label: string; hint: string }> = {
@@ -46,8 +46,7 @@ const BACKEND_META: Record<DataBackend, { label: string; hint: string }> = {
   },
 };
 
-const FIELD_CLS =
-  'mt-1 w-full bg-surface-0 border border-surface-3 rounded-md px-3 py-1.5 text-sm font-mono text-gray-200 placeholder-gray-600 focus:outline-none focus:border-accent';
+const FIELD_CLS = 'mt-1 field-input text-sm';
 
 function Field({
   label,
@@ -64,7 +63,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] uppercase tracking-wide text-gray-500">{label}</span>
+      <span className="field-label">{label}</span>
       <input
         value={value}
         type={type}
@@ -219,7 +218,7 @@ export default function DataDialog({ open, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-cloudera-navy/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -227,21 +226,21 @@ export default function DataDialog({ open, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-3">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-3 bg-surface-0">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold text-white">Training data · storage</h2>
+            <h2 className="text-base font-semibold text-ink">Training data · storage</h2>
             {state !== 'idle' && (
-              <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${meta.cls}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.cls}`}>
                 {meta.label}
               </span>
             )}
             {prep?.elapsed_sec != null && running && (
-              <span className="font-mono text-[11px] text-gray-500">{prep.elapsed_sec}s</span>
+              <span className="font-mono text-[11px] text-ink-muted">{prep.elapsed_sec}s</span>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-500 hover:text-gray-300 rounded-lg hover:bg-surface-3"
+            className="p-1.5 text-ink-muted hover:text-ink rounded-lg hover:bg-surface-3 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -249,10 +248,10 @@ export default function DataDialog({ open, onClose }: Props) {
 
         {/* body */}
         <div className="p-5 space-y-4 overflow-y-auto">
-          <p className="text-xs text-gray-400 leading-relaxed">
-            The temporal training splits <span className="font-mono text-gray-300">train</span>,{' '}
-            <span className="font-mono text-gray-300">val_eval</span> and{' '}
-            <span className="font-mono text-gray-300">test_eval</span> live in the storage target
+          <p className="text-xs text-ink-secondary leading-relaxed">
+            The temporal training splits <span className="font-mono text-ink">train</span>,{' '}
+            <span className="font-mono text-ink">val_eval</span> and{' '}
+            <span className="font-mono text-ink">test_eval</span> live in the storage target
             below. Load TabFormer into it — artifact builds (training) read the splits back from
             there.
           </p>
@@ -266,10 +265,10 @@ export default function DataDialog({ open, onClose }: Props) {
                   setBackend(b);
                   setCheck(null);
                 }}
-                className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md border transition-colors ${
                   backend === b
-                    ? 'bg-accent/15 border-accent/60 text-accent'
-                    : 'bg-surface-0 border-surface-3 text-gray-400 hover:text-gray-200'
+                    ? 'bg-status-purple-dim border-cloudera-purple/40 text-cloudera-purple-dim'
+                    : 'bg-surface-0 border-surface-4 text-ink-muted hover:text-ink hover:border-cloudera-purple/30'
                 }`}
               >
                 {b === 'vast' ? <HardDrive className="w-3.5 h-3.5" /> : <Database className="w-3.5 h-3.5" />}
@@ -277,7 +276,7 @@ export default function DataDialog({ open, onClose }: Props) {
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-gray-500">{BACKEND_META[backend].hint}</p>
+          <p className="text-[11px] text-ink-muted">{BACKEND_META[backend].hint}</p>
 
           {/* connection form */}
           {backend === 'impala' ? (
@@ -333,7 +332,7 @@ export default function DataDialog({ open, onClose }: Props) {
           <button
             onClick={saveAndTest}
             disabled={testing || !configured}
-            className="flex items-center gap-2 bg-surface-3 text-gray-300 hover:bg-surface-4 px-3 py-1.5 text-xs font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {testing ? (
               <>
@@ -350,7 +349,7 @@ export default function DataDialog({ open, onClose }: Props) {
           </button>
 
           {reqError && (
-            <div className="px-4 py-3 bg-status-red-dim/30 border border-status-red/40 rounded-lg text-sm text-status-red">
+            <div className="px-4 py-3 bg-status-red-dim border border-status-red/30 rounded-lg text-sm text-status-red">
               {reqError}
             </div>
           )}
@@ -360,13 +359,13 @@ export default function DataDialog({ open, onClose }: Props) {
             <div
               className={`rounded-lg border p-4 ${
                 check.ok
-                  ? 'bg-surface-2 border-status-green/30'
-                  : 'bg-status-red-dim/30 border-status-red/40'
+                  ? 'bg-status-green-dim border-cloudera-green/30'
+                  : 'bg-status-red-dim border-status-red/30'
               }`}
             >
               {check.ok ? (
                 <>
-                  <div className="flex items-center gap-2 mb-3 text-status-green text-sm">
+                  <div className="flex items-center gap-2 mb-3 text-cloudera-green text-sm font-medium">
                     <CheckCircle className="w-4 h-4 flex-shrink-0" />
                     <span>
                       Connected · <span className="font-mono text-xs">{check.target}</span>
@@ -375,9 +374,9 @@ export default function DataDialog({ open, onClose }: Props) {
                   <div className="grid grid-cols-3 gap-x-6 text-xs">
                     {Object.entries(check.tables).map(([table, rows]) => (
                       <div key={table} className="flex flex-col gap-0.5">
-                        <span className="text-gray-500 font-mono">{table}</span>
+                        <span className="text-ink-muted font-mono">{table}</span>
                         <span
-                          className={`font-mono ${rows ? 'text-gray-200' : 'text-status-amber'}`}
+                          className={`font-mono ${rows ? 'text-ink' : 'text-status-amber'}`}
                         >
                           {rows != null ? `${rows.toLocaleString()} rows` : 'missing'}
                         </span>
@@ -401,7 +400,7 @@ export default function DataDialog({ open, onClose }: Props) {
           {prep && prep.log.length > 0 && (
             <div
               ref={logRef}
-              className="bg-surface-0 border border-surface-3 rounded-lg p-3 max-h-56 overflow-y-auto font-mono text-[11px] leading-relaxed text-gray-400 space-y-0.5"
+              className="bg-surface-0 border border-surface-3 rounded-lg p-3 max-h-56 overflow-y-auto font-mono text-[11px] leading-relaxed text-ink-muted space-y-0.5"
             >
               {prep.log.map((line, i) => (
                 <div
@@ -410,7 +409,7 @@ export default function DataDialog({ open, onClose }: Props) {
                     line.startsWith('ERROR')
                       ? 'text-status-red'
                       : line.startsWith('prepare_data: wrote')
-                        ? 'text-status-green'
+                        ? 'text-cloudera-green'
                         : ''
                   }
                 >
@@ -418,7 +417,7 @@ export default function DataDialog({ open, onClose }: Props) {
                 </div>
               ))}
               {running && (
-                <div className="flex items-center gap-2 text-accent pt-1">
+                <div className="flex items-center gap-2 text-cloudera-purple pt-1">
                   <Loader2 className="w-3 h-3 animate-spin" /> working…
                 </div>
               )}
@@ -426,7 +425,7 @@ export default function DataDialog({ open, onClose }: Props) {
           )}
 
           {state === 'error' && prep?.error && (
-            <div className="flex items-start gap-2 px-4 py-3 bg-status-red-dim/30 border border-status-red/40 rounded-lg text-sm text-status-red">
+            <div className="flex items-start gap-2 px-4 py-3 bg-status-red-dim border border-status-red/30 rounded-lg text-sm text-status-red">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>{prep.error}</span>
             </div>
@@ -435,14 +434,14 @@ export default function DataDialog({ open, onClose }: Props) {
 
         {/* footer */}
         <div className="px-5 py-4 border-t border-surface-3 flex items-center justify-between gap-3">
-          <p className="text-[11px] text-gray-500 flex items-center gap-1.5">
+          <p className="text-[11px] text-ink-muted flex items-center gap-1.5">
             <Database className="w-3.5 h-3.5" />
             Load downloads ~2.4 GB of TabFormer and re-ingests the splits.
           </p>
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="bg-surface-3 text-gray-300 hover:bg-surface-4 px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
+              className="btn-secondary"
             >
               Close
             </button>
@@ -450,7 +449,7 @@ export default function DataDialog({ open, onClose }: Props) {
               onClick={runPrepare}
               disabled={prepBusy || running || !configured}
               title={configured ? undefined : 'Save the storage settings first'}
-              className="flex items-center gap-2 bg-accent text-white hover:bg-accent/90 px-3 py-1.5 text-xs font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {prepBusy || running ? (
                 <>
