@@ -1,0 +1,185 @@
+# Cloudera AI / CML Applied ML Prototype (AMP) project metadata.
+# Spec: https://docs.cloudera.com/machine-learning/1.5.4/applied-ml-prototypes/topics/ml-amp-project-spec.html
+#
+# Deploys ONE application (scripts/serve_app.py) that runs both halves of the
+# demo in a single GPU container — CML exposes one public port per application
+# and separate apps can't talk over localhost, so they must share a container:
+#   * FastAPI backend (NVIDIA TFM stack) — private on 127.0.0.1:$BACKEND_PORT
+#   * Vite preview server (React SPA)    — public on CDSW_APP_PORT, proxying
+#                                          /api/* inward to the backend
+# The SPA therefore calls same-origin /api/* and needs no cross-origin config.
+# Artifact export is triggered from the UI (POST /api/export) and runs on the GPU.
+
+name: Transaction Foundation Model — Live Fraud Inference
+description: >
+  Live fraud-inference demo for the NVIDIA Transaction Foundation Model blueprint.
+  A transaction flows through the GPU tokenizer, the decoder foundation model
+  (512-d last-token embedding), PCA-64, and three XGBoost heads (raw / embeddings
+  / combined) to produce fraud probabilities, AUC/AP lift, and a live UMAP
+  position. The FastAPI backend runs the NVIDIA stack on a GPU; the React SPA is
+  a pure client. Training/export of the artifacts is launched from the UI and
+  runs on the backend. Boots in a clearly-labelled DEMO-FALLBACK mode when the
+  checkpoint, artifacts, or GPU are unavailable.
+author: Mike Schuler
+specification_version: "1.0"
+prototype_version: "1.0"
+date: "2026-06-08"
+
+# Extra shared memory helps the GPU data loaders / RAPIDS.
+shared_memory_limit: 1
+
+environment_variables:
+  BACKEND_PORT:
+    default: "7100"
+    description: >
+      Private in-container port the FastAPI backend binds on 127.0.0.1. Vite
+      proxies /api/* to it; both the app and the build read this. Rarely needs
+      changing — only if 7100 collides with something else in the runtime.
+    required: false
+  SKIP_GPU_DEPS:
+    default: ""
+    description: >
+      Set to 1 to skip installing the NVIDIA/GPU Python stack (requirements-gpu
+      .txt) and run web-layer only — the engine then serves DEMO-FALLBACK mode.
+      Leave empty for REAL mode on a GPU runtime.
+    required: false
+  VITE_API_BASE:
+    default: ""
+    description: >
+      Optional override for the API base URL. Leave EMPTY for the standard
+      single-application deployment — the SPA calls same-origin /api/* and Vite
+      proxies it to the backend. Only set this (to an absolute URL) if pointing
+      the UI at a separately-hosted backend.
+    required: false
+  IMPALA_CONNECTION_NAME:
+    default: ""
+    description: >
+      Optional seed for the CML data connection used for the Impala data layer
+      (training splits are stored in and read from Impala tables). Normally
+      left empty — the connection name and database are entered in the app's
+      Data dialog after deployment and persisted in the project.
+    required: false
+  IMPALA_DATABASE:
+    default: ""
+    description: >
+      Optional seed for the Impala database that holds the train / val_eval /
+      test_eval split tables. Normally left empty and set via the app's Data
+      dialog instead.
+    required: false
+
+# Recommended runtime. REAL mode needs CUDA + RAPIDS (cudf/cuml) + torch, so a
+# GPU runtime that contains the NVIDIA TFM stack (e.g. the NeMo container
+# registered as a custom ML Runtime) is required for live inference; the stock
+# Nvidia GPU edition below is the closest catalog default.
+#
+# NO SPARK: this demo is GPU/RAPIDS only and must not provision Spark. CML
+# enables Spark solely by attaching a Spark runtime add-on to a task (an
+# `addons:` entry) — so do NOT add one. There are intentionally no `addons:`
+# here, and nothing in the code imports pyspark or opens a SparkSession.
+runtimes:
+  - editor: JupyterLab
+    kernel: Python 3.12
+    edition: Nvidia GPU
+
+tasks:
+  # --- one-time setup: add the web layer on top of the runtime ---------------
+  # A Job (not a session) runs install_deps.py as a real process, so `__file__`
+  # is defined and it's the idiomatic shape for a one-shot, non-interactive step.
+  - type: create_job
+    name: Install dependencies
+    entity_label: install_deps
+    script: scripts/install_deps.py
+    arguments: None
+    short_summary: Install the web layer + the NVIDIA/GPU Python stack (CUDA assumed present).
+    kernel: Python 3.12
+    cpu: 2
+    memory: 16
+    gpu: 1
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+  - type: run_job
+    entity_label: install_deps
+    short_summary: Run the dependency install.
+
+  # --- build the SPA: runtimes ship no Node, so install it user-locally ------
+  # build_frontend.py downloads Node into ~/.local/node (never a global prefix,
+  # no root) and runs `npm ci && npm run build` -> frontend/dist. A committed
+  # bundle is shipped too, but this regenerates it fresh in-cluster.
+  - type: create_job
+    name: Build frontend SPA
+    entity_label: build_frontend
+    script: scripts/build_frontend.py
+    arguments: None
+    short_summary: Install Node user-locally and build the React SPA bundle.
+    kernel: Python 3.12
+    cpu: 2
+    memory: 4
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+  - type: run_job
+    entity_label: build_frontend
+    short_summary: Run the SPA build.
+
+  # --- fetch the checkpoint (Git LFS blob, ~56 MB) + the blueprint's src/ -----
+  # fetch_model.py downloads models/decoder-foundation-model AND the blueprint's
+  # src/ package (tokenizer, decoder inference) from the NVIDIA TFM repo over
+  # plain HTTPS (no git/git-lfs needed). REAL mode + in-app embedding generation
+  # require both — a standalone CML project has neither, and without src/ the
+  # export fails with "No module named src". No GPU; stdlib only.
+  - type: create_job
+    name: Fetch model checkpoint
+    entity_label: fetch_model
+    script: scripts/fetch_model.py
+    arguments: None
+    short_summary: Download the model checkpoint into ./models and the blueprint src/ package.
+    kernel: Python 3.12
+    cpu: 2
+    memory: 4
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+  - type: run_job
+    entity_label: fetch_model
+    short_summary: Run the checkpoint download.
+
+  # --- prepare data: download TabFormer + load the splits into Impala --------
+  # The dataset isn't in any git repo; prepare_data.py downloads ~2.4 GB from
+  # IBM Box, reproduces NB01's temporal split in chunked pandas (bounded
+  # memory), and loads the splits into the configured Impala database. The
+  # Impala connection/database are entered in the app's Data dialog (or the
+  # IMPALA_* env vars) — when unset this job prints guidance and exits 0, and
+  # the load is re-run from the UI once configured. The work is CPU-only, but
+  # we request 4 CPU / 16 GB / 1 GPU because that's a valid CML resource
+  # profile that runs cleanly (a no-GPU combo failed to schedule); the GPU is
+  # just along for the profile. ~15-30 min, idempotent.
+  - type: create_job
+    name: Prepare TabFormer data
+    entity_label: prepare_data
+    script: scripts/prepare_data.py
+    arguments: None
+    short_summary: Download TabFormer and load the temporal splits into Impala.
+    kernel: Python 3.12
+    cpu: 4
+    memory: 16
+    gpu: 1
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+  - type: run_job
+    entity_label: prepare_data
+    short_summary: Run the data preparation.
+
+  # --- the single application: backend + UI in one GPU container -------------
+  # serve_app.py runs uvicorn (private :$BACKEND_PORT) and Vite preview (public
+  # CDSW_APP_PORT), with Vite proxying /api/* inward. One public port, one app.
+  - type: start_application
+    name: TFM Fraud Demo
+    # No subdomain specified: CML assigns a unique one dynamically, so redeploys
+    # never collide on applications_subdomain_idx.
+    script: scripts/serve_app.py
+    kernel: Python 3.12
+    cpu: 2
+    memory: 16
+    gpu: 1
+    # Public demo: the app is reachable without a CML session cookie.
+    bypass_authentication: true
+    environment_variables:
+      BACKEND_PORT: "7100"

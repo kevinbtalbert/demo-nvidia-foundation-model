@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Generated demo artifacts (produced by the export; can be large)
+demo_artifacts/
+
+# Foundation-model checkpoint — fetched at deploy time by scripts/fetch_model.py
+# (Git LFS blob from the NVIDIA blueprint, ~56 MB); not committed here.
+models/
+
+# Blueprint src/ package (tokenizer, decoder inference) — also fetched at deploy
+# time by scripts/fetch_model.py; upstream NVIDIA code, not committed here.
+# Anchored to the repo root: frontend/src is real, committed source.
+/src/
+
+# Embeddings cache produced in-app by the export (notebook 04 step)
+data/embeddings/
+
+# Runtime settings saved from the UI's Data dialog (per-deployment state;
+# .data_settings.json can hold the VAST S3 secret key — never commit it)
+.impala_settings.json
+.data_settings.json
+.nexus_settings.json
+
+# Node / frontend build (frontend/ has its own .gitignore too)
+node_modules/
+dist/
+# ...but the SPA bundle IS the deployment artifact: CML runtimes ship no Node,
+# so frontend/dist must be prebuilt and committed (see scripts/serve_frontend.py).
+!frontend/dist/
+!frontend/dist/**
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+.vast.env
+
+# OS / editor
+.DS_Store
+
+# Office lock files
+~$*

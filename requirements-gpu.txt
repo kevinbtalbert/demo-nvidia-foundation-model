@@ -1,0 +1,59 @@
+# GPU / NVIDIA stack for REAL mode. CUDA itself is already installed in the
+# runtime; these are the Python components the engine and exporter import:
+#   - cudf / cuml / cupy  (RAPIDS): GPU tokenizer dataframes, UMAP + PCA
+#   - torch + transformers: the decoder foundation model + tokenizer
+#   - xgboost + scikit-learn: the three fraud heads and the preprocessing/PCA
+# Installed by scripts/install_deps.py alongside requirements-demo.txt.
+#
+# RAPIDS and some CUDA wheels live on NVIDIA's index, not PyPI; torch's CUDA 12
+# build lives on PyTorch's own index. (Unqualified `torch` on PyPI now pulls a
+# CUDA 13 build, which mismatches the cu12 RAPIDS stack and the CUDA 12 driver.)
+--extra-index-url https://pypi.nvidia.com
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+# RAPIDS — cu12 wheels bundle their own CUDA 12 runtime and only need a CUDA 12
+# driver, which the runtime already provides. Keep cudf and cuml versions in
+# lockstep; bump both together if the runtime's CUDA driver requires it.
+cudf-cu12==24.12.*
+cuml-cu12==24.12.*
+cupy-cuda12x
+
+# RAPIDS' numba / CUDA-binding companions, pinned to cudf 24.12's tested matrix
+# (cudf-cu12 24.12 declares numba-cuda>=0.0.13,<0.0.18 and cuda-python<=12.6.0)
+# so install re-runs converge instead of drifting. NOTE: pinning alone did NOT
+# fix the export SIGSEGV — every numba-cuda in cudf 24.12's window has the
+# ctypes-shim `_v2` symbol bug (NVIDIA/numba-cuda#173: r580/CUDA-13 drivers
+# export cuCtxGetDevice_v2 with a new signature; the shim calls it with the old
+# argument list), so on this cluster's driver a matrix-correct install still
+# segfaults every cuDF device->host copy. The fix is routing numba through the
+# cuda-python binding instead (NUMBA_CUDA_USE_NVIDIA_BINDING=1, defaulted in
+# tfm_demo/gpu.py, opt out with DEMO_NUMBA_NV_BINDING=0) — which is why
+# cuda-python is a hard pin here, not just a transitive dep. ==12.6.0 exactly:
+# 12.6.* would resolve to 12.6.2, violating rmm/cudf 24.12's <=12.6.0 cap.
+# (Escape hatch if this matrix rots further: RAPIDS 25.06 — cudf/cuml/rmm
+# ==25.6.*, numba-cuda>=0.11,<0.12, cuda-python>=12.6.2,<13 — is the first
+# release line whose numba-cuda floor includes the #185 fix.)
+numba-cuda==0.0.17
+numba==0.60.*
+cuda-python==12.6.0
+
+# Decoder foundation model + tokenizer. The +cu121 local version forces the
+# CUDA 12 wheel from the PyTorch index (and so can't be satisfied by a PyPI
+# cu13 build). cu121 wheels run on any CUDA 12.x driver; cp312 wheels exist.
+torch==2.5.1+cu121
+# transformers is pinned to the version the checkpoint was saved with
+# (config.json "transformers_version": 4.53.3). Unpinned, pip pulls the newest
+# release, whose Llama modeling module no longer imports against torch 2.5.1 —
+# AutoModelForCausalLM.from_pretrained then dies with "Could not import module
+# 'LlamaForCausalLM'. Are this object's requirements defined correctly?".
+# Keep these three in lockstep: bump transformers/accelerate only with torch.
+transformers==4.53.*
+accelerate<2
+safetensors
+sentencepiece
+
+# Fraud heads + the sklearn preprocessing/PCA used at export time.
+xgboost
+scikit-learn
+numpy
+pandas
